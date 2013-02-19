@@ -12,7 +12,10 @@ of the server, but the server is not always aware of the clients.
 A more traditional "pull" backup system is more versitile, where the server
 pulls from the client(s) directly. It is recommended to use one of these,
 such as **rsnapshot** and **rdiff** unless there is a compelling use case
-for this system.
+for a simple push-based backup system.
+
+This is not a replacement for comprehensive backup systems like **Bacula** or
+**Amanda**.
 
 License
 ================================================================================
