@@ -1,0 +1,202 @@
+# -*- coding: utf8 -*-
+
+# nosetests --with-coverage --cover-package=roundrobinbackupoptionsparser \
+# --nocapture ./tests
+
+import os
+import sys
+from nose.tools import *
+from roundrobinbackup import RoundRobinBackupCommandLineArgsParser
+from functools import wraps
+
+def no_stdout_or_stderr(func):
+    '''
+    Blocks stdout and stderr from being displayed. It will not block Nose
+    errors, Python exceptions, etc. Useful for functions that automatically
+    write to the command line, like argparse.
+
+    Need to use additional functools.wraps decorator for Nose to recongize
+    custom decorators. See: http://stackoverflow.com/questions/7727678/
+    '''
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        self.stdout = sys.stdout
+        self.stderr = sys.stderr
+        sys.stderr = open(os.devnull, "w")
+        sys.stdout = open(os.devnull, "w")
+        func(self, *args, **kwargs)
+        sys.stdout = self.stdout
+        sys.stderr = self.stderr
+    return wrapper
+
+class TestRoundRobinBackupCommandLineArgsParser:
+
+    def setup(self):
+        "Set up test fixtures"
+        self.args_parser = RoundRobinBackupCommandLineArgsParser()
+
+    def teardown(self):
+        "Tear down test fixtures"
+
+    def set_command_line_arguments(self, new_value_list):
+        sys.argv = ['./roundrobinbackup.py'] + new_value_list
+
+    @no_stdout_or_stderr
+    def test_no_arguments_raises_error(self):
+        self.set_command_line_arguments([])
+        assert_raises(SystemExit, self.args_parser.get_args)
+
+    @no_stdout_or_stderr
+    def test_missing_target_arguments_raises_error(self):
+        self.set_command_line_arguments(['user@target.com:/path'])
+        assert_raises(SystemExit, self.args_parser.get_args)
+
+    @no_stdout_or_stderr
+    def test_missing_destination_arguments_raises_error(self):
+        self.set_command_line_arguments(['/local/files'])
+        assert_raises(SystemExit, self.args_parser.get_args)
+
+    def test_required_arguments_return_as_expected(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path'
+        ]
+        self.set_command_line_arguments(arguments)
+
+        returned = self.args_parser.get_args()
+        assert_equal(returned['source'], '/local/files')
+        assert_equal(returned['destination'], 'user@target.com:/path')
+
+    def test_required_arguments_return_default_optional_argument_values_as_expected(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path'
+        ]
+        self.set_command_line_arguments(arguments)
+
+        returned = self.args_parser.get_args()
+        assert_equal(returned['source'], '/local/files')
+        assert_equal(returned['destination'], 'user@target.com:/path')
+        assert_equal(returned['exclude'], [])
+        assert_equal(returned['ssh_identity_file'], None)
+        assert_equal(returned['ssh_port'], '22')
+
+    @no_stdout_or_stderr
+    def test_invalid_argument_raises_error(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--invalid-option'
+        ]
+        self.set_command_line_arguments(arguments)
+        assert_raises(SystemExit, self.args_parser.get_args)
+
+    @no_stdout_or_stderr
+    def test_empty_excludes_argument_raises_error(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--exclude'
+        ]
+        self.set_command_line_arguments(arguments)
+        assert_raises(SystemExit, self.args_parser.get_args)
+
+    def test_one_excludes_argument_returns_as_expected(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--exclude',
+            '.git/*',
+        ]
+        self.set_command_line_arguments(arguments)
+        returned = self.args_parser.get_args()
+        assert_equal(returned['source'], '/local/files')
+        assert_equal(returned['destination'], 'user@target.com:/path')
+        assert_equal(returned['exclude'], ['.git/*'])
+
+    def test_multiple_excludes_argument_returns_as_expected(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--exclude',
+            '.git/*',
+            '--exclude',
+            '.venv/*',
+        ]
+        self.set_command_line_arguments(arguments)
+        returned = self.args_parser.get_args()
+        assert_equal(returned['source'], '/local/files')
+        assert_equal(returned['destination'], 'user@target.com:/path')
+        assert_equal(returned['exclude'], ['.git/*', '.venv/*'])
+
+    @no_stdout_or_stderr
+    def test_empty_identity_file_argument_raises_error(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--ssh-identity-file'
+        ]
+        self.set_command_line_arguments(arguments)
+        assert_raises(SystemExit, self.args_parser.get_args)
+
+    def test_identity_file_argument_returns_as_expected(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--ssh-identity-file',
+            '/path/to/ssh/identity/file',
+        ]
+        self.set_command_line_arguments(arguments)
+        returned = self.args_parser.get_args()
+        assert_equal(returned['ssh_identity_file'], '/path/to/ssh/identity/file')
+
+    def test_no_ssh_port_argument_returns_default(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path'
+        ]
+        self.set_command_line_arguments(arguments)
+        returned = self.args_parser.get_args()
+        assert_equal(returned['ssh_port'], '22')
+
+    @no_stdout_or_stderr
+    def test_empty_ssh_port_argument_raises_error(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--ssh-port'
+        ]
+        self.set_command_line_arguments(arguments)
+        assert_raises(SystemExit, self.args_parser.get_args)
+
+    def test_ssh_port_argument_returns_as_expected(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--ssh-port',
+            '2222'
+        ]
+        self.set_command_line_arguments(arguments)
+        returned = self.args_parser.get_args()
+        assert_equal(returned['ssh_port'], '2222')
+
+    def test_all_arguments_return_as_expected(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--exclude',
+            '.git/*',
+            '--exclude',
+            '.venv/*',
+            '--ssh-identity-file',
+            '/path/to/ssh/identity/file',
+            '--ssh-port',
+            '2222'
+        ]
+        self.set_command_line_arguments(arguments)
+        returned = self.args_parser.get_args()
+        assert_equal(returned['source'], '/local/files')
+        assert_equal(returned['destination'], 'user@target.com:/path')
+        assert_equal(returned['exclude'], ['.git/*', '.venv/*'])
+        assert_equal(returned['ssh_identity_file'], '/path/to/ssh/identity/file')
+        assert_equal(returned['ssh_port'], '2222')
