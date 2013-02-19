@@ -80,6 +80,10 @@ class TestRoundRobinBackupCommandLineArgsParser:
         assert_equal(returned['exclude'], [])
         assert_equal(returned['ssh_identity_file'], None)
         assert_equal(returned['ssh_port'], '22')
+        assert_equal(returned['days'], '6')
+        assert_equal(returned['weeks'], '5')
+        assert_equal(returned['months'], '6')
+        assert_equal(returned['years'], '10')
 
     @no_stdout_or_stderr
     def test_invalid_argument_raises_error(self):
@@ -180,6 +184,90 @@ class TestRoundRobinBackupCommandLineArgsParser:
         returned = self.args_parser.get_args()
         assert_equal(returned['ssh_port'], '2222')
 
+    @no_stdout_or_stderr
+    def test_empty_days_argument_raises_error(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--days'
+        ]
+        self.set_command_line_arguments(arguments)
+        assert_raises(SystemExit, self.args_parser.get_args)
+
+    def test_days_argument_returns_as_expected(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--days',
+            '55'
+        ]
+        self.set_command_line_arguments(arguments)
+        returned = self.args_parser.get_args()
+        assert_equal(returned['days'], '55')
+
+    @no_stdout_or_stderr
+    def test_empty_weeks_argument_raises_error(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--weeks'
+        ]
+        self.set_command_line_arguments(arguments)
+        assert_raises(SystemExit, self.args_parser.get_args)
+
+    def test_weeks_argument_returns_as_expected(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--weeks',
+            '11'
+        ]
+        self.set_command_line_arguments(arguments)
+        returned = self.args_parser.get_args()
+        assert_equal(returned['weeks'], '11')
+
+    @no_stdout_or_stderr
+    def test_empty_months_argument_raises_error(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--months'
+        ]
+        self.set_command_line_arguments(arguments)
+        assert_raises(SystemExit, self.args_parser.get_args)
+
+    def test_months_argument_returns_as_expected(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--months',
+            '8'
+        ]
+        self.set_command_line_arguments(arguments)
+        returned = self.args_parser.get_args()
+        assert_equal(returned['months'], '8')
+
+    @no_stdout_or_stderr
+    def test_empty_years_argument_raises_error(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--years'
+        ]
+        self.set_command_line_arguments(arguments)
+        assert_raises(SystemExit, self.args_parser.get_args)
+
+    def test_years_argument_returns_as_expected(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--years',
+            '8'
+        ]
+        self.set_command_line_arguments(arguments)
+        returned = self.args_parser.get_args()
+        assert_equal(returned['years'], '8')
+
     def test_all_arguments_return_as_expected(self):
         arguments = [
             '/local/files',
@@ -191,7 +279,15 @@ class TestRoundRobinBackupCommandLineArgsParser:
             '--ssh-identity-file',
             '/path/to/ssh/identity/file',
             '--ssh-port',
-            '2222'
+            '2222',
+            '--days',
+            '5',
+            '--weeks',
+            '4',
+            '--months',
+            '3',
+            '--years',
+            '2'
         ]
         self.set_command_line_arguments(arguments)
         returned = self.args_parser.get_args()
@@ -200,3 +296,7 @@ class TestRoundRobinBackupCommandLineArgsParser:
         assert_equal(returned['exclude'], ['.git/*', '.venv/*'])
         assert_equal(returned['ssh_identity_file'], '/path/to/ssh/identity/file')
         assert_equal(returned['ssh_port'], '2222')
+        assert_equal(returned['days'], '5')
+        assert_equal(returned['weeks'], '4')
+        assert_equal(returned['months'], '3')
+        assert_equal(returned['years'], '2')
