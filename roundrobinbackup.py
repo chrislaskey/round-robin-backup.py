@@ -4,31 +4,81 @@ import argparse
 import textwrap
 from lib.commandline import CommandLine
 from lib.roundrobindate import RoundRobinDate
+from lib.sshparser import SSHParser
 
 class RoundRobinBackup:
 
     def __init__(self):
         self._set_options()
+        self._set_date_library()
+        self._set_command_line_library()
 
     def _set_options(self):
-        command_line_parser = RoundRobinBackupCommandLineArgsParser()
-        command_line_args = command_line_parser.get_args()
-        self.options = command_line_args
+        parser = RoundRobinBackupOptionsParser()
+        options = parser.get_options()
+        self.options = options
 
     def get_options(self):
         return self.options.copy()
 
-    def set_date_generator(self, date_generator):
-        pass
+    def _set_date_library(self):
+        # TODO add day, week, month, year options
+        date_library = RoundRobinDate()
+        self.date_generator = date_library
 
-    def set_command_line_library(self, command_line_library):
-        pass
+    def _set_command_line_library(self):
+        command_line_library = CommandLine()
+        self.command_line_library = command_line_library
 
-    def return_dates(self):
-        pass
+    def backup(self):
+        self._remote_sync()
+        self._remote_archive()
+        self._remote_cleanup()
 
-    def execute_command(self):
-        pass
+    def _remote_sync(self):
+        sync = RoundRobinBackupRemoteSync()
+        sync.set_command_line_library(self.command_line_library)
+        sync.sync_files()
+
+    def _remote_archive(self):
+        archive = RoundRobinBackupRemoteArchive()
+        archive.set_command_line_library(self.command_line_library)
+        archive.create_archive()
+
+    def _remote_cleanup(self):
+        cleanup = RoundRobinBackupRemoteCleanup()
+        cleanup.set_command_line_library(self.command_line_library)
+        cleanup.set_date_generator()
+        cleanup.remote_stale_backups()
+
+class RoundRobinBackupOptionsParser:
+
+    def get_options(self):
+        self.args = self._get_args()
+        options = self._parse_args_and_return_options()
+        return options
+
+    def _get_args(self):
+        parser = RoundRobinBackupCommandLineArgsParser()
+        args = parser.get_args()
+        return args
+
+    def _parse_args_and_return_options(self):
+        options = self.args.copy()
+        destination_options = self._create_destination_options()
+        options.update(destination_options)
+        return options
+
+    def _create_destination_options(self):
+        ssh_parser = SSHParser()
+        ssh_string = self.args['destination']
+        parsed = ssh_parser.parse(ssh_string)
+        new_destination_options = {
+            'destination_user': parsed['user'],
+            'destination_host': parsed['host'],
+            'destination_path': parsed['path'],
+        }
+        return new_destination_options
 
 class RoundRobinBackupCommandLineArgsParser:
 
@@ -131,15 +181,49 @@ class RoundRobinBackupCommandLineArgsParser:
         return parser
 
     def _process(self, parsed):
+        parsed = self._flatten_excludes_list(parsed)
+        return parsed
+
+    def _flatten_excludes_list(self, parsed):
         if parsed.exclude:
-            parsed.exclude = self._flatten_excludes_list(parsed.exclude)
+            nested_list = parsed.exclude
+            flattened = [item for sublist in nested_list for item in sublist]
+            parsed.exclude = flattened
         else:
             parsed.exclude = []
         return parsed
 
-    def _flatten_excludes_list(self, nested_list):
-        flattened = [item for sublist in nested_list for item in sublist]
-        return flattened
+class AbstractRoundRobinBackupActions:
+
+    def set_options(self, options):
+        self.options = options
+
+    def set_command_line_library(self, command_line_library):
+        self.cli = command_line_library
+
+class RoundRobinBackupRemoteSync(AbstractRoundRobinBackupActions):
+
+    def __init__(self, options):
+        self.options = options
+        # Create backup dir if needed
+        # rsync data
+
+    def create_backup_dir(self):
+        pass
+
+class RoundRobinBackupRemoteArchive(AbstractRoundRobinBackupActions):
+
+    def __init__(self, options):
+        self.options = options
+        # Create today's archive dir
+        # Use live backup dir to tar+bzip2 files
+
+class RoundRobinBackupRemoteCleanup(AbstractRoundRobinBackupActions):
+
+    def __init__(self, options):
+        self.options = options
+        # Get all existing rrbackup dirs
+        # Remove ones that don't fit the date
 
 if __name__ == "__main__":
     RoundRobinBackup()
