@@ -2,6 +2,7 @@
 
 import argparse
 import textwrap
+import os
 from lib.commandline import CommandLine
 from lib.roundrobindate import RoundRobinDate
 from lib.sshparser import SSHParser
@@ -10,7 +11,6 @@ class RoundRobinBackup:
 
     def __init__(self):
         self._set_options()
-        self._set_date_library()
         self._set_command_line_library()
 
     def _set_options(self):
@@ -21,34 +21,41 @@ class RoundRobinBackup:
     def get_options(self):
         return self.options.copy()
 
-    def _set_date_library(self):
-        # TODO add day, week, month, year options
-        date_library = RoundRobinDate()
-        self.date_generator = date_library
-
     def _set_command_line_library(self):
         command_line_library = CommandLine()
         self.command_line_library = command_line_library
 
     def backup(self):
         self._remote_sync()
-        self._remote_archive()
-        self._remote_cleanup()
+        # TODO: implement
+        # self._remote_archive()
+        # self._remote_cleanup()
 
     def _remote_sync(self):
-        sync = RoundRobinBackupRemoteSync()
-        sync.set_command_line_library(self.command_line_library)
+        sync = self._create_remote_actor('sync')
         sync.sync_files()
 
+    def _create_remote_actor(self, type):
+        remote = self._remote_actor_factory(type)
+        remote.set_options(self.options)
+        remote.set_command_line_library(self.command_line_library)
+        return remote
+
+    def _remote_actor_factory(self, type):
+        if type == 'sync':
+            remote = RoundRobinBackupRemoteSync()
+        elif type == 'archive':
+            remote = RoundRobinBackupRemoteArchive()
+        elif type == 'cleanup':
+            remote = RoundRobinBackupRemoteCleanup()
+        return remote
+
     def _remote_archive(self):
-        archive = RoundRobinBackupRemoteArchive()
-        archive.set_command_line_library(self.command_line_library)
+        archive = self._create_remote_actor('archive')
         archive.create_archive()
 
     def _remote_cleanup(self):
-        cleanup = RoundRobinBackupRemoteCleanup()
-        cleanup.set_command_line_library(self.command_line_library)
-        cleanup.set_date_generator()
+        cleanup = self._create_remote_actor('cleanup')
         cleanup.remote_stale_backups()
 
 class RoundRobinBackupOptionsParser:
@@ -181,7 +188,17 @@ class RoundRobinBackupCommandLineArgsParser:
         return parser
 
     def _process(self, parsed):
+        parsed = self._convert_identity_file_to_absolute_path(parsed)
         parsed = self._flatten_excludes_list(parsed)
+        return parsed
+
+    def _convert_identity_file_to_absolute_path(self, parsed):
+        if parsed.ssh_identity_file:
+            absolute_file = os.path.abspath(parsed.ssh_identity_file)
+            if not os.path.exists(absolute_file):
+                raise Exception("Invalid SSH identity file, "
+                    "'{0}'".format(absolute_file))
+            parsed.ssh_identity_file = absolute_file
         return parsed
 
     def _flatten_excludes_list(self, parsed):
@@ -193,7 +210,7 @@ class RoundRobinBackupCommandLineArgsParser:
             parsed.exclude = []
         return parsed
 
-class AbstractRoundRobinBackupActions:
+class AbstractRoundRobinBackupActor:
 
     def set_options(self, options):
         self.options = options
@@ -201,29 +218,88 @@ class AbstractRoundRobinBackupActions:
     def set_command_line_library(self, command_line_library):
         self.cli = command_line_library
 
-class RoundRobinBackupRemoteSync(AbstractRoundRobinBackupActions):
+    def execute_command(self, command, *args, **kwargs):
+        return self.cli.execute(command, *args, **kwargs)
 
-    def __init__(self, options):
-        self.options = options
-        # Create backup dir if needed
-        # rsync data
+    def execute_pipe(self, commands, *args, **kwargs):
+        return self.cli.execute_queue(commands, *args, **kwargs)
 
-    def create_backup_dir(self):
-        pass
+class RoundRobinBackupRemoteSync(AbstractRoundRobinBackupActor):
 
-class RoundRobinBackupRemoteArchive(AbstractRoundRobinBackupActions):
+    def sync_files(self):
+        self._create_remote_backup_dir_if_needed()
+        self._rsync_data()
 
-    def __init__(self, options):
-        self.options = options
-        # Create today's archive dir
-        # Use live backup dir to tar+bzip2 files
+    def _create_remote_backup_dir_if_needed(self):
+        self._get_make_backup_dir_command()
 
-class RoundRobinBackupRemoteCleanup(AbstractRoundRobinBackupActions):
+    def _get_make_backup_dir_command(self):
+        ssh = ['ssh']
+        user_and_host = [self.options['destination']]
+        remote_path = self.options['destination_path']
+        remote_command = ["'mkdir -p {0}'".format(remote_path)]
+        command = ssh + user_and_host + remote_command
+        return command
 
-    def __init__(self, options):
-        self.options = options
-        # Get all existing rrbackup dirs
-        # Remove ones that don't fit the date
+    def _rsync_data(self):
+        self._get_backup_rsync_command()
+
+    def _get_backup_rsync_command(self):
+        rsync = ['rsync']
+        flags = ['-avz']
+        ssh_commands = self._get_ssh_command()
+        source = [self.options['source']]
+        target = [self.options['destination']]
+        excludes = self._get_exclude_commands()
+        command = rsync + flags + ssh_commands + source + target + excludes
+        print(command)
+        return command
+
+    def _get_ssh_command(self):
+        port = self._get_ssh_command_port_argument()
+        identity_file = self._get_ssh_command_identity_file_argument()
+        if not port and not identity_file:
+            return []
+        inner_ssh_command = 'ssh {0} {1}'.format(port, identity_file)
+        rsync_command = []
+        rsync_command.append('-e')
+        rsync_command.append("'{0}'".format(inner_ssh_command))
+        return rsync_command
+
+    def _get_ssh_command_port_argument(self):
+        port = self.options['ssh_port']
+        if port != '22':
+            return '-p {0}'.format(port)
+        return ''
+
+    def _get_ssh_command_identity_file_argument(self):
+        identity_file = self.options['ssh_identity_file']
+        if identity_file:
+            return '-i {0}'.format(identity_file)
+        return ''
+
+    def _get_exclude_commands(self):
+        excludes_command = []
+        for item in self.options['exclude']:
+            excludes_command.append('--exclude')
+            excludes_command.append(item)
+        return excludes_command
+
+class RoundRobinBackupRemoteArchive(AbstractRoundRobinBackupActor):
+
+    # Create today's archive dir
+    # Use live backup dir to tar+bzip2 files
+    pass
+
+class RoundRobinBackupRemoteCleanup(AbstractRoundRobinBackupActor):
+    
+    # Get all existing rrbackup dirs
+    # Remove ones that don't fit the date
+    
+    def _set_date_library(self):
+        # TODO add day, week, month, year options
+        date_library = RoundRobinDate()
+        self.date_generator = date_library
 
 if __name__ == "__main__":
-    RoundRobinBackup()
+    RoundRobinBackup().backup()

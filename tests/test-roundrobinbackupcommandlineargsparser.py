@@ -143,16 +143,27 @@ class TestRoundRobinBackupCommandLineArgsParser:
         self.set_command_line_arguments(arguments)
         assert_raises(SystemExit, self.args_parser.get_args)
 
+    @no_stdout_or_stderr
+    def test_invalid_identity_file_argument_returns_as_expected(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--ssh-identity-file',
+            '/file/does/not/exist',
+        ]
+        self.set_command_line_arguments(arguments)
+        assert_raises(Exception, self.args_parser.get_args)
+
     def test_identity_file_argument_returns_as_expected(self):
         arguments = [
             '/local/files',
             'user@target.com:/path',
             '--ssh-identity-file',
-            '/path/to/ssh/identity/file',
+            '/dev/null',
         ]
         self.set_command_line_arguments(arguments)
         returned = self.args_parser.get_args()
-        assert_equal(returned['ssh_identity_file'], '/path/to/ssh/identity/file')
+        assert_equal(returned['ssh_identity_file'], '/dev/null')
 
     def test_no_ssh_port_argument_returns_default(self):
         arguments = [
@@ -277,7 +288,7 @@ class TestRoundRobinBackupCommandLineArgsParser:
             '--exclude',
             '.venv/*',
             '--ssh-identity-file',
-            '/path/to/ssh/identity/file',
+            '/dev/null',
             '--ssh-port',
             '2222',
             '--days',
@@ -294,7 +305,7 @@ class TestRoundRobinBackupCommandLineArgsParser:
         assert_equal(returned['source'], '/local/files')
         assert_equal(returned['destination'], 'user@target.com:/path')
         assert_equal(returned['exclude'], ['.git/*', '.venv/*'])
-        assert_equal(returned['ssh_identity_file'], '/path/to/ssh/identity/file')
+        assert_equal(returned['ssh_identity_file'], '/dev/null')
         assert_equal(returned['ssh_port'], '2222')
         assert_equal(returned['days'], '5')
         assert_equal(returned['weeks'], '4')

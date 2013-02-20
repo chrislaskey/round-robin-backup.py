@@ -45,7 +45,7 @@ class TestRoundRobinBackupOptionsParser:
             '--exclude',
             '.venv/*',
             '--ssh-identity-file',
-            '/path/to/ssh/identity/file',
+            '/dev/null',
             '--ssh-port',
             '2222'
         ]
@@ -59,7 +59,7 @@ class TestRoundRobinBackupOptionsParser:
         assert_equal(returned['destination_host'], 'target.com')
         assert_equal(returned['destination_path'], '/some/path')
         assert_equal(returned['exclude'], ['.git/*', '.venv/*'])
-        assert_equal(returned['ssh_identity_file'], '/path/to/ssh/identity/file')
+        assert_equal(returned['ssh_identity_file'], '/dev/null')
         assert_equal(returned['ssh_port'], '2222')
 
 
