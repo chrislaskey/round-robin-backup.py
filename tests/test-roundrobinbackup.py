@@ -3,7 +3,6 @@
 # nosetests --with-coverage --cover-package=roundrobinbackupoptionsparser \
 # --nocapture ./tests
 
-import os
 import sys
 from nose.tools import *
 from roundrobinbackup import RoundRobinBackup
@@ -22,14 +21,17 @@ class TestRoundRobinBackup:
     def test_minimum_options_return_expected_default_values(self):
         arguments = [
             '/local/files',
-            'user@target.com:/path'
+            'user@target.com:/some/path'
         ]
         self.set_command_line_arguments(arguments)
         self.rrbackup = RoundRobinBackup()
 
         returned = self.rrbackup.get_options()
         assert_equal(returned['source'], '/local/files')
-        assert_equal(returned['destination'], 'user@target.com:/path')
+        assert_equal(returned['destination'], 'user@target.com:/some/path')
+        assert_equal(returned['destination_user'], 'user')
+        assert_equal(returned['destination_host'], 'target.com')
+        assert_equal(returned['destination_path'], '/some/path')
         assert_equal(returned['exclude'], [])
         assert_equal(returned['ssh_identity_file'], None)
         assert_equal(returned['ssh_port'], '22')
@@ -37,7 +39,7 @@ class TestRoundRobinBackup:
     def test_custom_options_return_as_expected(self):
         arguments = [
             '/local/files',
-            'user@target.com:/path',
+            'user@target.com:/some/path',
             '--exclude',
             '.git/*',
             '--exclude',
@@ -52,7 +54,10 @@ class TestRoundRobinBackup:
 
         returned = self.rrbackup.get_options()
         assert_equal(returned['source'], '/local/files')
-        assert_equal(returned['destination'], 'user@target.com:/path')
+        assert_equal(returned['destination'], 'user@target.com:/some/path')
+        assert_equal(returned['destination_user'], 'user')
+        assert_equal(returned['destination_host'], 'target.com')
+        assert_equal(returned['destination_path'], '/some/path')
         assert_equal(returned['exclude'], ['.git/*', '.venv/*'])
         assert_equal(returned['ssh_identity_file'], '/path/to/ssh/identity/file')
         assert_equal(returned['ssh_port'], '2222')
