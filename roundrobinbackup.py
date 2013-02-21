@@ -36,12 +36,12 @@ class RoundRobinBackup:
         sync.sync_files()
 
     def _create_remote_actor(self, type):
-        remote = self._remote_actor_factory(type)
+        remote = self._remote_actor_simple_factory(type)
         remote.set_options(self.options)
         remote.set_command_line_library(self.command_line_library)
         return remote
 
-    def _remote_actor_factory(self, type):
+    def _remote_actor_simple_factory(self, type):
         if type == 'sync':
             remote = RoundRobinBackupRemoteSync()
         elif type == 'archive':
@@ -56,7 +56,7 @@ class RoundRobinBackup:
 
     def _remote_cleanup(self):
         cleanup = self._create_remote_actor('cleanup')
-        cleanup.remote_stale_backups()
+        cleanup.cleanup_backups()
 
 class RoundRobinBackupOptionsParser:
 
