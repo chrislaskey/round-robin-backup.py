@@ -35,6 +35,8 @@ class TestRoundRobinBackupOptionsParser:
         assert_equal(returned['exclude'], [])
         assert_equal(returned['ssh_identity_file'], None)
         assert_equal(returned['ssh_port'], '22')
+        assert_equal(returned['rsync_dir'], 'latest')
+        assert_equal(returned['backup_prefix'], 'automated-backup-')
 
     def test_custom_options_return_as_expected(self):
         arguments = [
@@ -47,7 +49,19 @@ class TestRoundRobinBackupOptionsParser:
             '--ssh-identity-file',
             '/dev/null',
             '--ssh-port',
-            '2222'
+            '2222',
+            '--days',
+            '5',
+            '--weeks',
+            '4',
+            '--months',
+            '3',
+            '--years',
+            '2',
+            '--rsync-dir',
+            'live-files',
+            '--backup-prefix',
+            'rrbackup'
         ]
         self.set_command_line_arguments(arguments)
         self.options_parser = RoundRobinBackupOptionsParser()
@@ -61,5 +75,9 @@ class TestRoundRobinBackupOptionsParser:
         assert_equal(returned['exclude'], ['.git/*', '.venv/*'])
         assert_equal(returned['ssh_identity_file'], '/dev/null')
         assert_equal(returned['ssh_port'], '2222')
-
-
+        assert_equal(returned['days'], '5')
+        assert_equal(returned['weeks'], '4')
+        assert_equal(returned['months'], '3')
+        assert_equal(returned['years'], '2')
+        assert_equal(returned['rsync_dir'], 'live-files')
+        assert_equal(returned['backup_prefix'], 'rrbackup')

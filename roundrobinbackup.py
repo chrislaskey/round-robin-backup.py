@@ -5,7 +5,7 @@ import textwrap
 import os
 from lib.commandline import CommandLine
 from lib.roundrobindate import RoundRobinDate
-from lib.sshparser import SSHParser
+from lib.sshutilities import SSHCommand, SSHParser
 
 class RoundRobinBackup:
 
@@ -133,32 +133,44 @@ class RoundRobinBackupCommandLineArgsParser:
         return epilog
 
     def _add_required_argparse_arguments(self, parser):
-        import_required = parser.add_argument_group('Required Arguments')
-        import_required.add_argument('source',
+        required = parser.add_argument_group('Required Arguments')
+        required.add_argument('source',
             help='The source directory path'
         )
-        import_required.add_argument('destination',
+        required.add_argument('destination',
             help='The target destination, in rsync/ssh compatible format:\
-                  user@example.com:/absolute/path/to/target/destination'
+                  user@example.com:/absolute/path/to/backup/dir'
         )
         return parser
 
     def _add_optional_rsync_argparse_arguments(self, parser):
-        rsync_options = parser.add_argument_group('Configuration options')
-        rsync_options.add_argument('-p', '--ssh-port',
+        configuration = parser.add_argument_group('Configuration options')
+        configuration.add_argument('-p', '--ssh-port',
             action='store',
             default='22',
             help='Specify a remote SSH port (defaults to port 22)'
         )
-        rsync_options.add_argument('-i', '--ssh-identity-file',
+        configuration.add_argument('-i', '--ssh-identity-file',
             action='store',
             help='Specify a SSH Identity file'
         )
-        rsync_options.add_argument('-E', '--exclude',
+        configuration.add_argument('-E', '--exclude',
             action='append',
             nargs='+',
             help='Specify a file or directory to exclude from rsync. Can be \
                   declared multiple times'
+        )
+        configuration.add_argument('--rsync-dir',
+            action='store',
+            default='latest',
+            help='Directory within destination to keep the latest unzipped \
+                  rsync files'
+        )
+        configuration.add_argument('--backup-prefix',
+            action='store',
+            default='automated-backup-',
+            help='Prefix of backup.tar.bzip2 files, e.g. \
+                  <backup-prefix>-<date>.tar.bzip2'
         )
         return parser
 

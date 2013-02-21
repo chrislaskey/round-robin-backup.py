@@ -84,6 +84,8 @@ class TestRoundRobinBackupCommandLineArgsParser:
         assert_equal(returned['weeks'], '5')
         assert_equal(returned['months'], '6')
         assert_equal(returned['years'], '10')
+        assert_equal(returned['rsync_dir'], 'latest')
+        assert_equal(returned['backup_prefix'], 'automated-backup-')
 
     @no_stdout_or_stderr
     def test_invalid_argument_raises_error(self):
@@ -279,6 +281,49 @@ class TestRoundRobinBackupCommandLineArgsParser:
         returned = self.args_parser.get_args()
         assert_equal(returned['years'], '8')
 
+
+    @no_stdout_or_stderr
+    def test_rsync_dir_prefix_argument_raises_error(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--rsync-dir'
+        ]
+        self.set_command_line_arguments(arguments)
+        assert_raises(SystemExit, self.args_parser.get_args)
+
+    def test_backup_prefix_argument_returns_as_expected(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--rsync-dir',
+            'live-files'
+        ]
+        self.set_command_line_arguments(arguments)
+        returned = self.args_parser.get_args()
+        assert_equal(returned['rsync_dir'], 'live-files')
+
+    @no_stdout_or_stderr
+    def test_empty_backup_prefix_argument_raises_error(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--backup-prefix'
+        ]
+        self.set_command_line_arguments(arguments)
+        assert_raises(SystemExit, self.args_parser.get_args)
+
+    def test_backup_prefix_argument_returns_as_expected(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/path',
+            '--backup-prefix',
+            'rrbackup'
+        ]
+        self.set_command_line_arguments(arguments)
+        returned = self.args_parser.get_args()
+        assert_equal(returned['backup_prefix'], 'rrbackup')
+
     def test_all_arguments_return_as_expected(self):
         arguments = [
             '/local/files',
@@ -298,7 +343,11 @@ class TestRoundRobinBackupCommandLineArgsParser:
             '--months',
             '3',
             '--years',
-            '2'
+            '2',
+            '--rsync-dir',
+            'live-files',
+            '--backup-prefix',
+            'rrbackup'
         ]
         self.set_command_line_arguments(arguments)
         returned = self.args_parser.get_args()
@@ -311,3 +360,5 @@ class TestRoundRobinBackupCommandLineArgsParser:
         assert_equal(returned['weeks'], '4')
         assert_equal(returned['months'], '3')
         assert_equal(returned['years'], '2')
+        assert_equal(returned['rsync_dir'], 'live-files')
+        assert_equal(returned['backup_prefix'], 'rrbackup')
