@@ -243,52 +243,54 @@ class RoundRobinBackupRemoteSync(AbstractRoundRobinBackupActor):
         self._rsync_data()
 
     def _create_remote_backup_dir_if_needed(self):
-        self._get_make_backup_dir_command()
+        command = self._get_make_backup_dir_command()
+        # self.cli.execute(command)
 
     def _get_make_backup_dir_command(self):
-        ssh = ['ssh']
-        user_and_host = [self.options['destination']]
-        remote_path = self.options['destination_path']
-        remote_command = ["'mkdir -p {0}'".format(remote_path)]
-        command = ssh + user_and_host + remote_command
-        return command
+        destination_path = self.options['destination_path']
+        rsync_dir = self.options['rsync_dir']
+        remote_path = os.path.join(destination_path, rsync_dir)
+        remote_command = "/bin/mkdir -p {0}".format(remote_path)
+        ssh_command_options = {
+            'user': self.options['destination_user'],
+            'host': self.options['destination_host'],
+            'port': self.options['ssh_port'],
+            'identity_file': self.options['ssh_identity_file'],
+            'subcommand': remote_command
+        }
+        ssh_command = SSHCommand().create(ssh_command_options)
+        return ssh_command
 
     def _rsync_data(self):
-        self._get_backup_rsync_command()
+        rsync_command = self._get_backup_rsync_command()
+        # self.cli.execute(rsync_command)
 
     def _get_backup_rsync_command(self):
         rsync = ['rsync']
         flags = ['-avz']
         ssh_commands = self._get_ssh_command()
         source = [self.options['source']]
-        target = [self.options['destination']]
+        target = self._get_rsync_target()
         excludes = self._get_exclude_commands()
         command = rsync + flags + ssh_commands + source + target + excludes
-        print(command)
         return command
 
     def _get_ssh_command(self):
-        port = self._get_ssh_command_port_argument()
-        identity_file = self._get_ssh_command_identity_file_argument()
-        if not port and not identity_file:
-            return []
-        inner_ssh_command = 'ssh {0} {1}'.format(port, identity_file)
+        options = {
+            'port': self.options['ssh_port'],
+            'identity_file': self.options['ssh_identity_file'],
+        }
+        ssh_command = SSHCommand().create_command_string(options)
         rsync_command = []
         rsync_command.append('-e')
-        rsync_command.append("'{0}'".format(inner_ssh_command))
+        rsync_command.append('{0}'.format(ssh_command))
         return rsync_command
 
-    def _get_ssh_command_port_argument(self):
-        port = self.options['ssh_port']
-        if port != '22':
-            return '-p {0}'.format(port)
-        return ''
-
-    def _get_ssh_command_identity_file_argument(self):
-        identity_file = self.options['ssh_identity_file']
-        if identity_file:
-            return '-i {0}'.format(identity_file)
-        return ''
+    def _get_rsync_target(self):
+        destination = self.options['destination']
+        rsync_dir = self.options['rsync_dir']
+        rsync_destination = [os.path.join(destination, rsync_dir)]
+        return rsync_destination
 
     def _get_exclude_commands(self):
         excludes_command = []
