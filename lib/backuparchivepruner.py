@@ -1,3 +1,4 @@
+import os
 from lib.backupagent import BackupAgent
 from utilities.roundrobindate import RoundRobinDate
 from utilities.sshutilities import SSHCommand
@@ -31,7 +32,7 @@ class BackupArchivePruner(BackupAgent):
         
     def _get_remote_list_command(self):
         remote_path = self.options['destination_path']
-        ls_subcommand = 'ls {0}'.format(remote_path)
+        ls_subcommand = '/bin/ls {0}'.format(remote_path)
         ssh_command_options = {
             'user': self.options['destination_user'],
             'host': self.options['destination_host'],
@@ -44,8 +45,10 @@ class BackupArchivePruner(BackupAgent):
 
     def _create_backup_file_object(self, filename):
         date = self._get_date_from_backup_filename(filename)
+        path = self.options['destination_path']
         backup_object = {}
         backup_object['filename'] = filename
+        backup_object['fullpath'] = os.path.join(path, filename)
         backup_object['date'] = date
         return backup_object
 
@@ -88,11 +91,8 @@ class BackupArchivePruner(BackupAgent):
         if not files:
             return ''
         files_to_remove = ' '.join(files)
-        path = self.options['destination_path']
-        rm_command = 'rm -r {0}'.format(files_to_remove)
-        cd_command = 'cd {0}'.format(path)
-        combined_subcommand = '{0} && {1}'.format(cd_command, rm_command)
-        return combined_subcommand
+        rm_command = '/bin/rm -r {0}'.format(files_to_remove)
+        return rm_command
 
     def _get_files_to_remove(self):
         dates_to_keep = self._get_backup_dates_to_keep()
@@ -100,28 +100,30 @@ class BackupArchivePruner(BackupAgent):
         for backup in self.existing_backups:
             date = backup.get('date')
             if date not in dates_to_keep:
-                filename = backup.get('filename')
-                files_to_remove.append(filename)
+                fullpath = backup.get('fullpath')
+                files_to_remove.append(fullpath)
         return files_to_remove
 
     def _get_backup_dates_to_keep(self):
         date_library = self._create_date_library()
         dates = date_library.get_dates_as_strings()
+        if self.oldest_backup_date:
+            dates.append(self.oldest_backup_date)
         return dates
 
     def _create_date_library(self):
-        oldest_backup_date = self._get_oldest_backup_date()
+        self._set_oldest_backup_date()
         options = {
             'days_to_retain': self.options['days'],
             'weeks_to_retain': self.options['weeks'],
             'months_to_retain': self.options['months'],
             'years_to_retain': self.options['years'],
-            'anchor_date': oldest_backup_date
+            'anchor_date': self.oldest_backup_date
         }
         date_library = RoundRobinDate(options)
         return date_library
 
-    def _get_oldest_backup_date(self):
+    def _set_oldest_backup_date(self):
         existing_backups = self.existing_backups
         if existing_backups:
             dates = [backup['date'] for backup in existing_backups]
@@ -129,4 +131,4 @@ class BackupArchivePruner(BackupAgent):
             oldest_backup_date = dates[0]
         else:
             oldest_backup_date = ''
-        return oldest_backup_date
+        self.oldest_backup_date = oldest_backup_date
