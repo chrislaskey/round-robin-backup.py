@@ -110,14 +110,23 @@ class BackupArchivePruner(BackupAgent):
         return dates
 
     def _create_date_library(self):
-        # TODO: self.oldest_backup_date
+        oldest_backup_date = self._get_oldest_backup_date()
         options = {
             'days_to_retain': self.options['days'],
             'weeks_to_retain': self.options['weeks'],
             'months_to_retain': self.options['months'],
             'years_to_retain': self.options['years'],
-            # 'anchor_date': self.oldest_backup_date
+            'anchor_date': oldest_backup_date
         }
         date_library = RoundRobinDate(options)
         return date_library
 
+    def _get_oldest_backup_date(self):
+        existing_backups = self.existing_backups
+        if existing_backups:
+            dates = [backup['date'] for backup in existing_backups]
+            dates.sort()
+            oldest_backup_date = dates[0]
+        else:
+            oldest_backup_date = ''
+        return oldest_backup_date
