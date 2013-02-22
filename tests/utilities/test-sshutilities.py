@@ -24,6 +24,14 @@ class TestSSHCommand:
         expected = ['ssh', 'myuser@example.com']
         assert_equal(result, expected)
 
+    def test_host_only(self):
+        options = {
+            'host': 'example.com',
+        }
+        result = self.command.create(options)
+        expected = ['ssh', 'example.com']
+        assert_equal(result, expected)
+
     def test_with_user_and_host_omitted(self):
         ''' Useful in `rsync -e "ssh ..."` commands '''
         options = {
