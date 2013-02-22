@@ -92,7 +92,7 @@ class TestRoundRobinBackup:
         assert_equal(returned['rsync_dir'], 'live-files')
         assert_equal(returned['backup_prefix'], 'rrbackup')
 
-    def test_no_archives_exist(self):
+    def test_full_execution_when_no_remote_archives_exist(self):
         arguments = [
             '/local/files',
             'user@target.com:/some/path'
@@ -109,7 +109,7 @@ class TestRoundRobinBackup:
         rrbackup.set_command_line_library(cli_mock)
         rrbackup.backup()
 
-    def test_archives_exist(self):
+    def test_full_execution_when_remote_archives_exist(self):
         arguments = [
             '/local/files',
             'user@target.com:/some/path'
