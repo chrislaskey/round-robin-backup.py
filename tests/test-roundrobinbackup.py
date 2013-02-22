@@ -91,3 +91,47 @@ class TestRoundRobinBackup:
         assert_equal(returned['years'], '2')
         assert_equal(returned['rsync_dir'], 'live-files')
         assert_equal(returned['backup_prefix'], 'rrbackup')
+
+    def test_no_archives_exist(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/some/path'
+        ]
+        self.set_command_line_arguments(arguments)
+
+        cli_input_output = [
+            ('ssh user@target.com /bin/mkdir -p /some/path/latest', ''),
+            ('rsync -avz -e ssh /local/files user@target.com:/some/path/latest', ''),
+            ('ssh user@target.com /bin/ls /some/path', '')
+        ]
+        cli_mock = CommandLineMock(cli_input_output)
+        rrbackup = RoundRobinBackup()
+        rrbackup.set_command_line_library(cli_mock)
+        rrbackup.backup()
+
+    def test_archives_exist(self):
+        arguments = [
+            '/local/files',
+            'user@target.com:/some/path'
+        ]
+        self.set_command_line_arguments(arguments)
+
+        # Oldest date will be used as an anchor. The second date does not line
+        # up with the anchor date, and should be requested to be removed,
+        # generating the last command in cli_input_output.
+        existing_backup_files = [
+            'automated-backup-1996-01-21',
+            'automated-backup-2004-02-21',
+            'automated-backup-2004-02-22'
+        ]
+        existing_backups = '\n'.join(existing_backup_files)
+        cli_input_output = [
+            ('ssh user@target.com /bin/mkdir -p /some/path/latest', ''),
+            ('rsync -avz -e ssh /local/files user@target.com:/some/path/latest', ''),
+            ('ssh user@target.com /bin/ls /some/path', existing_backups),
+            ('ssh user@target.com /bin/rm -r /some/path/automated-backup-2004-02-21 /some/path/automated-backup-2004-02-22', '')
+        ]
+        cli_mock = CommandLineMock(cli_input_output)
+        rrbackup = RoundRobinBackup()
+        rrbackup.set_command_line_library(cli_mock)
+        rrbackup.backup()
