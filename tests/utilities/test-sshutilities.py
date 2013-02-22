@@ -4,7 +4,7 @@
 # --nocapture ./tests
 
 from nose.tools import *
-from lib.sshutilities import SSHCommand, SSHParser
+from utilities.sshutilities import SSHCommand, SSHParser
 
 class TestSSHCommand:
 
