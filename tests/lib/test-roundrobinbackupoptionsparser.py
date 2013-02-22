@@ -5,7 +5,7 @@
 
 import sys
 from nose.tools import *
-from roundrobinbackup import RoundRobinBackupOptionsParser
+from lib.roundrobinbackupoptionsparser import RoundRobinBackupOptionsParser
 
 class TestRoundRobinBackupOptionsParser:
 

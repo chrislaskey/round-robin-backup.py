@@ -6,7 +6,7 @@
 import os
 import sys
 from nose.tools import *
-from roundrobinbackup import RoundRobinBackupCommandLineArgsParser
+from lib.roundrobinbackupoptionsparser import RoundRobinBackupCommandLineArgsParser
 from functools import wraps
 
 def no_stdout_or_stderr(func):
