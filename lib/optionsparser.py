@@ -3,7 +3,7 @@ import textwrap
 import os
 from utilities.sshutilities import SSHParser
 
-class RoundRobinBackupOptionsParser:
+class OptionsParser:
 
     def get_options(self):
         self.args = self._get_args()
@@ -11,7 +11,7 @@ class RoundRobinBackupOptionsParser:
         return options
 
     def _get_args(self):
-        parser = RoundRobinBackupCommandLineArgsParser()
+        parser = ArgParser()
         args = parser.get_args()
         return args
 
@@ -32,7 +32,7 @@ class RoundRobinBackupOptionsParser:
         }
         return new_destination_options
 
-class RoundRobinBackupCommandLineArgsParser:
+class ArgParser:
 
     def get_args(self):
         parsed = self._parse()

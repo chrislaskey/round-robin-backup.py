@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-from lib.roundrobinbackupoptionsparser import RoundRobinBackupOptionsParser
-from lib.roundrobinbackupremotesync import RoundRobinBackupRemoteSync
-from lib.roundrobinbackupremotearchive import RoundRobinBackupRemoteArchive
-from lib.roundrobinbackupremotecleanup import RoundRobinBackupRemoteCleanup
+from lib.optionsparser import OptionsParser
+from lib.backupcreator import BackupCreator
+from lib.backuparchiver import BackupArchiver
+from lib.backuparchivepruner import BackupArchivePruner
 from utilities.commandline import CommandLine
 
 class RoundRobinBackup:
@@ -12,7 +12,7 @@ class RoundRobinBackup:
         self._set_options()
 
     def _set_options(self):
-        parser = RoundRobinBackupOptionsParser()
+        parser = OptionsParser()
         options = parser.get_options()
         self.options = options
 
@@ -23,14 +23,13 @@ class RoundRobinBackup:
         self.command_line_library = command_line_library
 
     def backup(self):
-        self._remote_sync()
-        # TODO: implement
-        # self._remote_archive()
-        # self._remote_cleanup()
+        self._create_backup()
+        # self._create_archive()
+        # self._remove_stale_archives()
 
-    def _remote_sync(self):
-        sync = self._create_remote_actor('sync')
-        sync.sync_files()
+    def _create_backup(self):
+        creator = self._create_remote_actor('creator')
+        creator.sync_files()
 
     def _create_remote_actor(self, type):
         remote = self._remote_actor_simple_factory(type)
@@ -39,21 +38,21 @@ class RoundRobinBackup:
         return remote
 
     def _remote_actor_simple_factory(self, type):
-        if type == 'sync':
-            remote = RoundRobinBackupRemoteSync()
-        elif type == 'archive':
-            remote = RoundRobinBackupRemoteArchive()
-        elif type == 'cleanup':
-            remote = RoundRobinBackupRemoteCleanup()
+        if type == 'creator':
+            remote = BackupCreator()
+        elif type == 'archiver':
+            remote = BackupArchiver()
+        elif type == 'archive_pruner':
+            remote = BackupArchivePruner()
         return remote
 
-    def _remote_archive(self):
-        archive = self._create_remote_actor('archive')
-        archive.create_archive()
+    def _create_archive(self):
+        archiver = self._create_remote_actor('archiver')
+        archiver.create()
 
-    def _remote_cleanup(self):
-        cleanup = self._create_remote_actor('cleanup')
-        cleanup.cleanup_backups()
+    def _remove_stale_archives(self):
+        archive_pruner = self._create_remote_actor('archive_pruner')
+        archive_pruner.cleanup_backups()
 
 if __name__ == "__main__":
     command_line_library = CommandLine()

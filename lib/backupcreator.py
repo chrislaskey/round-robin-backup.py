@@ -1,8 +1,8 @@
 import os
-from lib.abstractroundrobinbackupremoteactor import AbstractRoundRobinBackupRemoteActor
+from lib.backupagent import BackupAgent
 from utilities.sshutilities import SSHCommand
 
-class RoundRobinBackupRemoteSync(AbstractRoundRobinBackupRemoteActor):
+class BackupCreator(BackupAgent):
 
     def sync_files(self):
         self._create_remote_backup_dir_if_needed()
@@ -64,4 +64,3 @@ class RoundRobinBackupRemoteSync(AbstractRoundRobinBackupRemoteActor):
             excludes_command.append('--exclude')
             excludes_command.append(item)
         return excludes_command
-

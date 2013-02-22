@@ -1,13 +1,13 @@
 # -*- coding: utf8 -*-
 
-# nosetests --with-coverage --cover-package=roundrobinbackupoptionsparser \
-# --nocapture ./tests
+# nosetests --with-coverage --cover-package=lib.optionsparser \
+# --nocapture ./tests/lib
 
 import sys
 from nose.tools import *
-from lib.roundrobinbackupoptionsparser import RoundRobinBackupOptionsParser
+from lib.optionsparser import OptionsParser
 
-class TestRoundRobinBackupOptionsParser:
+class TestOptionsParser:
 
     def setup(self):
         "Set up test fixtures"
@@ -24,7 +24,7 @@ class TestRoundRobinBackupOptionsParser:
             'user@target.com:/some/path'
         ]
         self.set_command_line_arguments(arguments)
-        self.options_parser = RoundRobinBackupOptionsParser()
+        self.options_parser = OptionsParser()
 
         returned = self.options_parser.get_options()
         assert_equal(returned['source'], '/local/files')
@@ -64,7 +64,7 @@ class TestRoundRobinBackupOptionsParser:
             'rrbackup'
         ]
         self.set_command_line_arguments(arguments)
-        self.options_parser = RoundRobinBackupOptionsParser()
+        self.options_parser = OptionsParser()
 
         returned = self.options_parser.get_options()
         assert_equal(returned['source'], '/local/files')

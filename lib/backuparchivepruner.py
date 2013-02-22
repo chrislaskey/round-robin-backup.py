@@ -1,8 +1,8 @@
-from lib.abstractroundrobinbackupremoteactor import AbstractRoundRobinBackupRemoteActor
-from lib.roundrobindate import RoundRobinDate
+from lib.backupagent import BackupAgent
+from utilities.roundrobindate import RoundRobinDate
 from utilities.sshutilities import SSHCommand
 
-class RoundRobinBackupRemoteCleanup(AbstractRoundRobinBackupRemoteActor):
+class BackupArchivePruner(BackupAgent):
     
     def cleanup_backups(self):
         self._set_existing_backups()
