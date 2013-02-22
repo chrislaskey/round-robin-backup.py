@@ -24,38 +24,43 @@ class RoundRobinBackup:
 
     def backup(self):
         self._create_backup()
-        # self._create_archive()
-        # self._remove_stale_archives()
+        self._create_archive()
+        self._remove_stale_archives()
 
     def _create_backup(self):
-        creator = self._create_remote_actor('creator')
+        creator = self._create_backup_actor('creator')
         creator.sync_files()
 
-    def _create_remote_actor(self, type):
-        remote = self._remote_actor_simple_factory(type)
-        remote.set_options(self.options)
-        remote.set_command_line_library(self.command_line_library)
-        return remote
+    def _create_backup_actor(self, type):
+        backup = self._backup_actor_simple_factory(type)
+        backup.set_options(self.options)
+        backup.set_command_line_library(self.command_line_library)
+        return backup
 
-    def _remote_actor_simple_factory(self, type):
+    def _backup_actor_simple_factory(self, type):
         if type == 'creator':
-            remote = BackupCreator()
+            backup = BackupCreator()
         elif type == 'archiver':
-            remote = BackupArchiver()
+            backup = BackupArchiver()
         elif type == 'archive_pruner':
-            remote = BackupArchivePruner()
-        return remote
+            backup = BackupArchivePruner()
+        return backup
 
     def _create_archive(self):
-        archiver = self._create_remote_actor('archiver')
+        archiver = self._create_backup_actor('archiver')
         archiver.create()
 
     def _remove_stale_archives(self):
-        archive_pruner = self._create_remote_actor('archive_pruner')
+        archive_pruner = self._create_backup_actor('archive_pruner')
         archive_pruner.cleanup_backups()
 
 if __name__ == "__main__":
-    command_line_library = CommandLine()
+    debug = True
+    if debug:
+        from tests.mocksandstubs import CommandLineStub
+        command_line_library = CommandLineStub()
+    else:
+        command_line_library = CommandLine()
     backup = RoundRobinBackup()
     backup.set_command_line_library(command_line_library)
     backup.backup()
