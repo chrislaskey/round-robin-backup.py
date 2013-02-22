@@ -291,7 +291,7 @@ class TestArgParser:
         self.set_command_line_arguments(arguments)
         assert_raises(SystemExit, self.args_parser.get_args)
 
-    def test_backup_prefix_argument_returns_as_expected(self):
+    def test_rsync_dir_argument_returns_as_expected(self):
         arguments = [
             '/local/files',
             'user@target.com:/path',
