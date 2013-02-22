@@ -5,6 +5,7 @@
 
 import sys
 from nose.tools import *
+from tests.mocksandstubs import CommandLineMock
 from roundrobinbackup import RoundRobinBackup
 
 class TestRoundRobinBackup:

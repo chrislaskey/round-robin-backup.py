@@ -24,7 +24,7 @@ class BackupArchivePruner(BackupAgent):
 
     def _get_remote_backup_dir_files_list(self):
         command = self._get_remote_list_command()
-        # result = self.cli.execute(command)
+        result = self.cli.execute(command)
         files_as_list = result.split('\n')
         filtered_list = [x for x in files_as_list if x]
         return filtered_list
