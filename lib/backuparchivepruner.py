@@ -65,11 +65,34 @@ class BackupArchivePruner(BackupAgent):
         return date
 
     def _remove_stale_backups(self):
-        files_to_remove = self._get_files_to_remove()
-        # print(files_to_remove)
-        # TODO
-        # remove_files_command = self._get_remove_files_command(files_to_remove)
-        # self.cli.execute(remove_files_command)
+        remove_files_command = self._get_remove_files_command()
+        if remove_files_command:
+            self.cli.execute(remove_files_command)
+
+    def _get_remove_files_command(self):
+        subcommand = self._get_remove_files_subcommand()
+        if not subcommand:
+            return ''
+        ssh_command_options = {
+            'user': self.options['destination_user'],
+            'host': self.options['destination_host'],
+            'port': self.options['ssh_port'],
+            'identity_file': self.options['ssh_identity_file'],
+            'subcommand': subcommand
+        }
+        ssh_command = SSHCommand().create(ssh_command_options)
+        return ssh_command
+        
+    def _get_remove_files_subcommand(self):
+        files = self._get_files_to_remove()
+        if not files:
+            return ''
+        files_to_remove = ' '.join(files)
+        path = self.options['destination_path']
+        rm_command = 'rm -r {0}'.format(files_to_remove)
+        cd_command = 'cd {0}'.format(path)
+        combined_subcommand = '{0} && {1}'.format(cd_command, rm_command)
+        return combined_subcommand
 
     def _get_files_to_remove(self):
         dates_to_keep = self._get_backup_dates_to_keep()
