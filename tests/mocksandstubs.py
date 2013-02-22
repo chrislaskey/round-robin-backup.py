@@ -11,19 +11,25 @@ class CommandLineStub:
 
 class CommandLineMock:
 
-    def __init__(self, input_output, order_matters = False):
+    def __init__(self, input_output, order_matters = True):
         self.order_matters = order_matters
         self.input_output = input_output
 
     def _get_output(self, command_as_string):
-        if command_as_string not in self.input_output:
-            raise Exception('Command not found in CommandLine testing mock'
-                            '"{0}"'.format(command_as_string))
         if self.order_matters:
-            output = self.input_output[command_as_string]
+            input_output = self.input_output.pop(0)
+            input = input_output[0]
+            output = input_output[1]
+            if command_as_string != input:
+                raise Exception('Command not found in CommandLine testing '
+                                'mock "{0}"'.format(command_as_string))
+            return output
         else:
-            output = self.input_output.pop(command_as_string)
-        return output
+            for tup in self.input_output:
+                if tup[0] == command_as_string:
+                    return tup[1]
+            raise Exception('Command not found in CommandLine testing '
+                            'mock "{0}"'.format(command_as_string))
 
     def execute(self, command, stdin=None, stdout=None, stderr=None,
                 return_boolean=False):
