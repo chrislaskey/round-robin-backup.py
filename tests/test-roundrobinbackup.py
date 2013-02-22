@@ -6,6 +6,7 @@
 import sys
 from nose.tools import *
 from tests.mocksandstubs import CommandLineMock
+from tests.utils import no_stdout_or_stderr
 from roundrobinbackup import RoundRobinBackup
 
 class TestRoundRobinBackup:
@@ -15,7 +16,7 @@ class TestRoundRobinBackup:
 
     def teardown(self):
         "Tear down test fixtures"
-
+    
     def set_command_line_arguments(self, new_value_list):
         sys.argv = ['./roundrobinbackup.py'] + new_value_list
 
@@ -25,9 +26,9 @@ class TestRoundRobinBackup:
             'user@target.com:/some/path'
         ]
         self.set_command_line_arguments(arguments)
-        self.rrbackup = RoundRobinBackup()
+        rrbackup = RoundRobinBackup()
 
-        returned = self.rrbackup.get_options()
+        returned = rrbackup.get_options()
         assert_equal(returned['source'], '/local/files')
         assert_equal(returned['destination'], 'user@target.com:/some/path')
         assert_equal(returned['destination_user'], 'user')
@@ -38,6 +39,14 @@ class TestRoundRobinBackup:
         assert_equal(returned['ssh_port'], '22')
         assert_equal(returned['rsync_dir'], 'latest')
         assert_equal(returned['backup_prefix'], 'automated-backup-')
+
+    @no_stdout_or_stderr
+    def test_missing_command_line_args_raises_error(self):
+        arguments = []
+        self.set_command_line_arguments(arguments)
+        # Object instantiation will throw a SystemExit since the init method
+        # calls methods that parse the command line arguments.
+        assert_raises(SystemExit, RoundRobinBackup)
 
     def test_custom_options_return_as_expected(self):
         arguments = [
@@ -65,9 +74,9 @@ class TestRoundRobinBackup:
             'rrbackup'
         ]
         self.set_command_line_arguments(arguments)
-        self.rrbackup = RoundRobinBackup()
+        rrbackup = RoundRobinBackup()
 
-        returned = self.rrbackup.get_options()
+        returned = rrbackup.get_options()
         assert_equal(returned['source'], '/local/files')
         assert_equal(returned['destination'], 'user@target.com:/some/path')
         assert_equal(returned['destination_user'], 'user')
