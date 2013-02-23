@@ -7,7 +7,7 @@ class BackupArchiver(BackupAgent):
 
     def create(self):
         ssh_command = self._get_ssh_command()
-        self.cli.execute(ssh_command)
+        self.execute_command(ssh_command)
 
     def _get_ssh_command(self):
         subcommand = self._get_tar_subcommand()
