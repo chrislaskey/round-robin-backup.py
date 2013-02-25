@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-# nosetests --with-coverage --cover-package=roundrobinbackup \
+# nosetests --with-coverage --cover-package=<package> \
 # --nocapture ./tests
 
 import sys

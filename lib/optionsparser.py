@@ -44,6 +44,7 @@ class ArgParser:
         argparse_options = self._get_argparse_options()
         parser = argparse.ArgumentParser(**argparse_options)
         parser = self._add_required_argparse_arguments(parser)
+        parser = self._add_optional_runtime_flags(parser)
         parser = self._add_optional_rsync_argparse_arguments(parser)
         parser = self._add_optional_date_argparse_arguments(parser)
         parsed = parser.parse_args()
@@ -85,6 +86,14 @@ class ArgParser:
         required.add_argument('destination',
             help='The target destination, in rsync/ssh compatible format:\
                   user@example.com:/absolute/path/to/backup/dir'
+        )
+        return parser
+
+    def _add_optional_runtime_flags(self, parser):
+        flags = parser.add_argument_group('Optional flags')
+        flags.add_argument('--debug', '--noop',
+            action='store_true',
+            help='Do not execute shell commands and print them out instead.'
         )
         return parser
 

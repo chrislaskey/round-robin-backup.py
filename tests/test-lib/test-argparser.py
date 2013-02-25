@@ -76,6 +76,7 @@ class TestArgParser:
         returned = self.args_parser.get_args()
         assert_equal(returned['source'], '/local/files')
         assert_equal(returned['destination'], 'user@target.com:/path')
+        assert_equal(returned['debug'], False)
         assert_equal(returned['exclude'], [])
         assert_equal(returned['ssh_identity_file'], None)
         assert_equal(returned['ssh_port'], '22')
@@ -327,6 +328,7 @@ class TestArgParser:
         arguments = [
             '/local/files',
             'user@target.com:/path',
+            '--debug',
             '--exclude',
             '.git/*',
             '--exclude',
@@ -352,6 +354,7 @@ class TestArgParser:
         returned = self.args_parser.get_args()
         assert_equal(returned['source'], '/local/files')
         assert_equal(returned['destination'], 'user@target.com:/path')
+        assert_equal(returned['debug'], True)
         assert_equal(returned['exclude'], ['.git/*', '.venv/*'])
         assert_equal(returned['ssh_identity_file'], '/dev/null')
         assert_equal(returned['ssh_port'], '2222')

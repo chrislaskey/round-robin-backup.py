@@ -1,11 +1,15 @@
 class CommandLineStub:
-
+    ' Used with --debug flag to noop and print commands'
     def execute(self, command, stdin=None, stdout=None, stderr=None,
                 return_boolean=False):
+        command_as_string = ' '.join(command)
+        print('\n# Debug flag set, in noop mode. Would have executed command:')
+        print(command_as_string)
         print(command)
         return ''
 
     def execute_queue(self, commands, return_boolean=False):
+        print('Executing command:')
         print(commands)
         return ''
 

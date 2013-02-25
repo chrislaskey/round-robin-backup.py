@@ -32,6 +32,7 @@ class TestOptionsParser:
         assert_equal(returned['destination_user'], 'user')
         assert_equal(returned['destination_host'], 'target.com')
         assert_equal(returned['destination_path'], '/some/path')
+        assert_equal(returned['debug'], False)
         assert_equal(returned['exclude'], [])
         assert_equal(returned['ssh_identity_file'], None)
         assert_equal(returned['ssh_port'], '22')
@@ -42,6 +43,7 @@ class TestOptionsParser:
         arguments = [
             '/local/files',
             'user@target.com:/some/path',
+            '--debug',
             '--exclude',
             '.git/*',
             '--exclude',
@@ -72,6 +74,7 @@ class TestOptionsParser:
         assert_equal(returned['destination_user'], 'user')
         assert_equal(returned['destination_host'], 'target.com')
         assert_equal(returned['destination_path'], '/some/path')
+        assert_equal(returned['debug'], True)
         assert_equal(returned['exclude'], ['.git/*', '.venv/*'])
         assert_equal(returned['ssh_identity_file'], '/dev/null')
         assert_equal(returned['ssh_port'], '2222')

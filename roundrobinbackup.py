@@ -10,6 +10,7 @@ class RoundRobinBackup:
 
     def __init__(self):
         self._set_options()
+        self._set_default_command_line_library()
 
     def _set_options(self):
         parser = OptionsParser()
@@ -18,6 +19,14 @@ class RoundRobinBackup:
 
     def get_options(self):
         return self.options.copy()
+
+    def _set_default_command_line_library(self):
+        if self.options['debug']:
+            from tests.mocksandstubs import CommandLineStub
+            command_line_library = CommandLineStub()
+        else:
+            command_line_library = CommandLine()
+        self.set_command_line_library(command_line_library)
 
     def set_command_line_library(self, command_line_library):
         self.command_line_library = command_line_library
@@ -55,12 +64,4 @@ class RoundRobinBackup:
         archive_pruner.cleanup_backups()
 
 if __name__ == "__main__":
-    debug = True
-    if debug:
-        from tests.mocksandstubs import CommandLineStub
-        command_line_library = CommandLineStub()
-    else:
-        command_line_library = CommandLine()
-    backup = RoundRobinBackup()
-    backup.set_command_line_library(command_line_library)
-    backup.backup()
+    RoundRobinBackup().backup()
