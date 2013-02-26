@@ -105,7 +105,7 @@ class TestRoundRobinBackup:
         cli_input_output = [
             ('ssh user@target.com /bin/mkdir -p /some/path/latest', ''),
             ('rsync -avz --delete -e ssh /local/files user@target.com:/some/path/latest', ''),
-            ('ssh user@target.com /bin/tar -cjf /some/path/automated-backup-{0}.tar.bzip2 /some/path/latest'.format(self.today), ''),
+            ('ssh user@target.com /bin/tar -C /some/path -cjf /some/path/automated-backup-{0}.tar.bzip2 latest'.format(self.today), ''),
             ('ssh user@target.com /bin/ls /some/path', '')
         ]
         cli_mock = CommandLineMock(cli_input_output)
@@ -132,7 +132,7 @@ class TestRoundRobinBackup:
         cli_input_output = [
             ('ssh user@target.com /bin/mkdir -p /some/path/latest', ''),
             ('rsync -avz --delete -e ssh /local/files user@target.com:/some/path/latest', ''),
-            ('ssh user@target.com /bin/tar -cjf /some/path/automated-backup-{0}.tar.bzip2 /some/path/latest'.format(self.today), ''),
+            ('ssh user@target.com /bin/tar -C /some/path -cjf /some/path/automated-backup-{0}.tar.bzip2 latest'.format(self.today), ''),
             ('ssh user@target.com /bin/ls /some/path', existing_backups),
             ('ssh user@target.com /bin/rm -r /some/path/automated-backup-2004-02-21.tar.bzip2 /some/path/automated-backup-2004-02-22.tar', '')
         ]
@@ -177,7 +177,7 @@ class TestRoundRobinBackup:
         cli_input_output = [
             ('ssh user@target.com -p 2222 -i /dev/null /bin/mkdir -p /some/path/live-files', ''),
             ('rsync -avz --delete -e ssh -p 2222 -i /dev/null /local/files user@target.com:/some/path/live-files --exclude .git/* --exclude .venv/*', ''),
-            ('ssh user@target.com -p 2222 -i /dev/null /bin/tar -cjf /some/path/rrbackup{0}.tar.bzip2 /some/path/live-files'.format(self.today), ''),
+            ('ssh user@target.com -p 2222 -i /dev/null /bin/tar -C /some/path -cjf /some/path/rrbackup{0}.tar.bzip2 live-files'.format(self.today), ''),
             ('ssh user@target.com -p 2222 -i /dev/null /bin/ls /some/path', existing_backups),
             ('ssh user@target.com -p 2222 -i /dev/null /bin/rm -r /some/path/rrbackup2004-02-21.tar.bzip2 /some/path/rrbackup2004-02-22.tar', '')
         ]

@@ -22,20 +22,21 @@ class BackupArchiver(BackupAgent):
         return ssh_command
 
     def _get_tar_subcommand(self):
+        backup_path = self.options['destination_path']
         backup_fullpath = self._get_backup_fullpath()
-        rsync_fullpath = self._get_rsync_fullpath()
-        tar_command = '/bin/tar -cjf {0} {1}'.format(
-            backup_fullpath, rsync_fullpath
+        rsync_dir = self.options['rsync_dir']
+        tar_command = '/bin/tar -C {0} -cjf {1} {2}'.format(
+            backup_path, backup_fullpath, rsync_dir
         )
         return tar_command
 
     def _get_backup_fullpath(self):
         date = RoundRobinDate()
-        path = self.options['destination_path']
+        backup_path = self.options['destination_path']
         backup_prefix = self.options['backup_prefix']
         backup_date = date.get_today()
         backup_filename = '{0}{1}.tar.bzip2'.format(backup_prefix, backup_date)
-        backup_fullpath = os.path.join(path, backup_filename)
+        backup_fullpath = os.path.join(backup_path, backup_filename)
         return backup_fullpath
 
     def _get_rsync_fullpath(self):
