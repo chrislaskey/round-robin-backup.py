@@ -33,7 +33,7 @@ class BackupCreator(BackupAgent):
 
     def _get_backup_rsync_command(self):
         rsync = ['rsync']
-        flags = ['-avz', '--delete']
+        flags = ['-az', '--delete']
         ssh_commands = self._get_ssh_command()
         source = [self.options['source']]
         target = self._get_rsync_target()
