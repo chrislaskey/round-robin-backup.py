@@ -17,19 +17,18 @@ class BackupArchivePruner(BackupAgent):
     def _get_list_of_existing_backups(self):
         list_of_files = self._get_remote_backup_dir_files_list()
         backup_prefix = self.options['backup_prefix']
-        backup_files = [name for name in list_of_files if backup_prefix in name]
-        backup_objects = []
-        for filename in backup_files:
-            backup_object = self._create_backup_file_object(filename)
-            backup_objects.append(backup_object)
-        return backup_objects
+        backup_filenames = [name for name in list_of_files if backup_prefix in name]
+        backup_files = []
+        for filename in backup_filenames:
+            backup_file = self._create_backup_file_dictionary(filename)
+            backup_files.append(backup_file)
+        return backup_files
 
     def _get_remote_backup_dir_files_list(self):
         command = self._get_remote_list_command()
-        result = self.execute_command(command)
-        files_as_list = result.split('\n')
-        filtered_list = [x for x in files_as_list if x]
-        return filtered_list
+        command_results = self.execute_command(command)
+        remote_files = self._parse_files_from_results(command_results)
+        return remote_files
         
     def _get_remote_list_command(self):
         remote_path = self.options['destination_path']
@@ -44,14 +43,21 @@ class BackupArchivePruner(BackupAgent):
         ssh_command = SSHCommand().create(ssh_command_options)
         return ssh_command
 
-    def _create_backup_file_object(self, filename):
+    def _parse_files_from_results(self, remote_command_results):
+        files = []
+        if remote_command_results:
+            files_as_list = remote_command_results.split('\n')
+            files = [x for x in files_as_list if x]
+        return files
+
+    def _create_backup_file_dictionary(self, filename):
         date = self._get_date_from_backup_filename(filename)
         path = self.options['destination_path']
-        backup_object = {}
-        backup_object['filename'] = filename
-        backup_object['fullpath'] = os.path.join(path, filename)
-        backup_object['date'] = date
-        return backup_object
+        backup_dict = {}
+        backup_dict['filename'] = filename
+        backup_dict['fullpath'] = os.path.join(path, filename)
+        backup_dict['date'] = date
+        return backup_dict
 
     def _get_date_from_backup_filename(self, filename):
         '''
