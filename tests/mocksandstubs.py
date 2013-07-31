@@ -1,47 +1,45 @@
 class CommandLineStub:
+
+    def execute(self, command, **extra_params_not_used_in_testing):
+        command_as_string = ' '.join(command)
+        return (command_as_string, command)
+
+    def execute_queue(self, commands, return_boolean=False):
+        return commands
+
+
+class CommandLineStubPrinter:
     ' Used with --debug flag to noop and print commands'
-    def execute(self, command, stdin=None, stdout=None, stderr=None,
-                return_boolean=False):
+    def execute(self, command, **extra_params_not_used_in_testing):
         command_as_string = ' '.join(command)
         print('\n# Debug flag set, in noop mode. Would have executed command:')
         print(command_as_string)
         print(command)
-        return ''
 
     def execute_queue(self, commands, return_boolean=False):
         print('Executing command:')
         print(commands)
-        return ''
+
 
 class CommandLineMock:
 
-    def __init__(self, input_output, order_matters = True):
-        self.order_matters = order_matters
-        self.input_output = input_output
+    def __init__(self, list_of_tuples_of_command_and_return_value):
+        self.expected_commands = list_of_tuples_of_command_and_return_value
 
-    def _get_output(self, command_as_string):
-        if self.order_matters:
-            input_output = self.input_output.pop(0)
-            input = input_output[0]
-            output = input_output[1]
-            if command_as_string != input:
-                raise Exception('Command not found in CommandLine testing '
-                                'mock "{0}"'.format(command_as_string))
-            return output
-        else:
-            for tup in self.input_output:
-                if tup[0] == command_as_string:
-                    return tup[1]
-            raise Exception('Command not found in CommandLine testing '
-                            'mock "{0}"'.format(command_as_string))
-
-    def execute(self, command, stdin=None, stdout=None, stderr=None,
-                return_boolean=False):
+    def execute(self, command, *extra_params_not_used_in_testing):
         command_as_string = ' '.join(command)
         output = self._get_output(command_as_string)
         return output
 
-    def execute_queue(self, commands, return_boolean=False):
+    def _get_output(self, given_command):
+        expected_command, expected_result = self.expected_commands.pop(0)
+        if given_command != expected_command:
+            raise Exception('Given command not found in CommandLine testing '
+                            'mock "{0}". Expected: "{1}"'
+                            .format(given_command, expected_command))
+        return expected_result
+
+    def execute_queue(self, commands, **extra_params_not_used_in_testing):
         flattened = [item for sublist in list for item in sublist]
         command_as_string = ' '.join(flattened)
         output = self._get_output(command_as_string)

@@ -23,8 +23,8 @@ class RoundRobinBackup:
 
     def _set_default_command_line_library(self):
         if self.options['debug']:
-            from tests.mocksandstubs import CommandLineStub
-            command_line_library = CommandLineStub()
+            from tests.mocksandstubs import CommandLineStubPrinter
+            command_line_library = CommandLineStubPrinter()
         else:
             command_line_library = CommandLine()
         self.set_command_line_library(command_line_library)
