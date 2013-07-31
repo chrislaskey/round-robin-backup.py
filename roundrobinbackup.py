@@ -38,30 +38,30 @@ class RoundRobinBackup:
         self._remove_stale_archives()
 
     def _create_backup(self):
-        creator = self._create_backup_actor('creator')
+        creator = self._create_backup_agent('creator')
         creator.sync_files()
 
-    def _create_backup_actor(self, type):
-        backup = self._backup_actor_simple_factory(type)
-        backup.set_options(self.options)
-        backup.set_command_line_library(self.command_line_library)
-        return backup
+    def _create_backup_agent(self, type):
+        agent = self._backup_agent_simple_factory(type)
+        agent.set_options(self.options)
+        agent.set_command_line_library(self.command_line_library)
+        return agent
 
-    def _backup_actor_simple_factory(self, type):
+    def _backup_agent_simple_factory(self, type):
         if type == 'creator':
-            backup = BackupCreator()
+            agent = BackupCreator()
         elif type == 'archiver':
-            backup = BackupArchiver()
+            agent = BackupArchiver()
         elif type == 'archive_pruner':
-            backup = BackupArchivePruner()
-        return backup
+            agent = BackupArchivePruner()
+        return agent
 
     def _create_archive(self):
-        archiver = self._create_backup_actor('archiver')
+        archiver = self._create_backup_agent('archiver')
         archiver.create()
 
     def _remove_stale_archives(self):
-        archive_pruner = self._create_backup_actor('archive_pruner')
+        archive_pruner = self._create_backup_agent('archive_pruner')
         archive_pruner.cleanup_backups()
 
 if __name__ == "__main__":
