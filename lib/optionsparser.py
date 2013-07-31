@@ -3,6 +3,7 @@ import textwrap
 import os
 from utilities.sshutilities import SSHParser
 
+
 class OptionsParser:
 
     def get_options(self):
@@ -31,6 +32,7 @@ class OptionsParser:
             'destination_path': parsed['path'],
         }
         return new_destination_options
+
 
 class ArgParser:
 

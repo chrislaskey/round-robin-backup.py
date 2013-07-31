@@ -10,6 +10,7 @@ from tests.utils import no_stdout_or_stderr
 from utilities.roundrobindate import RoundRobinDate
 from roundrobinbackup import RoundRobinBackup
 
+
 class TestRoundRobinBackup:
 
     def setup(self):

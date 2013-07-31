@@ -7,6 +7,7 @@ import sys
 from nose.tools import *
 from lib.optionsparser import OptionsParser
 
+
 class TestOptionsParser:
 
     def setup(self):

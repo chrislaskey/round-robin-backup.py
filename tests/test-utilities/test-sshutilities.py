@@ -6,6 +6,7 @@
 from nose.tools import *
 from utilities.sshutilities import SSHCommand, SSHParser
 
+
 class TestSSHCommand:
 
     def setup(self):
@@ -97,6 +98,7 @@ class TestSSHCommand:
         result = self.command.create_command_string(options)
         expected = 'ssh myuser@example.com -p 2222 -i /path/to/file ls -la'
         assert_equal(result, expected)
+
 
 class TestSSHParser:
 

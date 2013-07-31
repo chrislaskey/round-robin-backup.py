@@ -67,6 +67,7 @@ class SSHCommand:
             subcommand.append(without_wrapping_quotes)
         return subcommand
 
+
 class SSHParser:
 
     def parse(self, ssh_string):
