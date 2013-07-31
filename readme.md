@@ -24,19 +24,37 @@ Instead this is a backup tool for a specific layer of a comprehensive backup
 strategy, automated backups of specific directories, such as the backup of
 various live website files.
 
+Why push based?
+---------------
+
+The advantage of a pushed-based backup system is backup configuration code can
+live right next to other deployment and configuration code.
+
+For example by using a simple wrapper around `roundrobinbackup.py` backup code
+is now bundled with other project configuration like in the example below:
+
+```puppet
+node "webserver.example.com" inherits "webserver" {
+	deploy { "project_name": }
+	backup { "project_name": }
+}
+```
+
 Documentation
 =============
 
 Methods
 -------
 
-```RoundRobinBackup().get_options()``` Returns a dictionary of options parsed
+`RoundRobinBackup().get_options()` returns a dictionary of values parsed
 from command line arguments.
 
-```RoundRobinBackup().backup()``` Executes a round robin backup in three steps:
-1 Syncs files to backup destination using rsync
-2 Creates a bzip2 tar archive file on the backup destination 
-3 Prunes stale backup archive files on the backup destination based on round-robin-date rules.
+`RoundRobinBackup().backup()` executes a round robin backup in three steps:
+
+1. Syncs files to backup destination using rsync
+2. Creates a bzip2 tar archive file on the backup destination 
+3. Prunes stale backup archive files on the backup destination based on
+round-robin-date rules.
 
 Command-line Options
 --------------------
