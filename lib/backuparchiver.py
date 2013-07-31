@@ -39,9 +39,3 @@ class BackupArchiver(BackupAgent):
         backup_filename = '{0}{1}.tar.bzip2'.format(backup_prefix, backup_date)
         backup_fullpath = os.path.join(backup_path, backup_filename)
         return backup_fullpath
-
-    def _get_rsync_fullpath(self):
-        path = self.options['destination_path']
-        rsync_dir = self.options['rsync_dir']
-        rsync_fullpath = os.path.join(path, rsync_dir)
-        return rsync_fullpath
