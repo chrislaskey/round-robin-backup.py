@@ -26,7 +26,7 @@ class BackupArchivePruner(BackupAgent):
 
     def _get_remote_backup_dir_files_list(self):
         command = self._get_remote_list_command()
-        command_results = self.execute_command(command)
+        command_results = self._execute_command(command)
         remote_files = self._parse_files_from_results(command_results)
         return remote_files
         
@@ -77,7 +77,7 @@ class BackupArchivePruner(BackupAgent):
     def _remove_stale_backups(self):
         remove_files_command = self._get_remove_files_command()
         if remove_files_command:
-            self.execute_command(remove_files_command)
+            self._execute_command(remove_files_command)
 
     def _get_remove_files_command(self):
         subcommand = self._get_remove_files_subcommand()

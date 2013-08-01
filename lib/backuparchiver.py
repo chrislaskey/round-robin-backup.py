@@ -6,9 +6,10 @@ from utilities.sshutilities import SSHCommand
 
 class BackupArchiver(BackupAgent):
 
-    def create(self):
+    def execute(self):
+        'Create an archival tar on the remote target'
         ssh_command = self._get_ssh_command()
-        self.execute_command(ssh_command)
+        self._execute_command(ssh_command)
 
     def _get_ssh_command(self):
         subcommand = self._get_tar_subcommand()

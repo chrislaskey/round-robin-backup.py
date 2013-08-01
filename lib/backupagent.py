@@ -8,8 +8,5 @@ class BackupAgent:
     def set_command_line_library(self, command_line_library):
         self.cli = command_line_library
 
-    def execute_command(self, command, *args, **kwargs):
+    def _execute_command(self, command, *args, **kwargs):
         return self.cli.execute(command, *args, **kwargs)
-
-    def execute_pipe(self, commands, *args, **kwargs):
-        return self.cli.execute_queue(commands, *args, **kwargs)

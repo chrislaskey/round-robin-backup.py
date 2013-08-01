@@ -5,13 +5,14 @@ from utilities.sshutilities import SSHCommand
 
 class BackupCreator(BackupAgent):
 
-    def sync_files(self):
+    def execute(self):
+        'Sync local files to remote target via rsync'
         self._create_remote_backup_dir_if_needed()
         self._rsync_data()
 
     def _create_remote_backup_dir_if_needed(self):
         command = self._get_make_backup_dir_command()
-        self.execute_command(command)
+        self._execute_command(command)
 
     def _get_make_backup_dir_command(self):
         destination_path = self.options['destination_path']
@@ -30,7 +31,7 @@ class BackupCreator(BackupAgent):
 
     def _rsync_data(self):
         rsync_command = self._get_backup_rsync_command()
-        self.execute_command(rsync_command)
+        self._execute_command(rsync_command)
 
     def _get_backup_rsync_command(self):
         rsync = ['rsync']

@@ -4,9 +4,6 @@ class CommandLineStub:
         command_as_string = ' '.join(command)
         return (command_as_string, command)
 
-    def execute_queue(self, commands, return_boolean=False):
-        return commands
-
 
 class CommandLineStubPrinter:
     ' Used with --debug flag to noop and print commands'
@@ -15,10 +12,6 @@ class CommandLineStubPrinter:
         print('\n# Debug flag set, in noop mode. Would have executed command:')
         print(command_as_string)
         print(command)
-
-    def execute_queue(self, commands, return_boolean=False):
-        print('Executing command:')
-        print(commands)
 
 
 class CommandLineMock:
@@ -38,9 +31,3 @@ class CommandLineMock:
                             'mock "{0}". Expected: "{1}"'
                             .format(given_command, expected_command))
         return expected_result
-
-    def execute_queue(self, commands, **extra_params_not_used_in_testing):
-        flattened = [item for sublist in list for item in sublist]
-        command_as_string = ' '.join(flattened)
-        output = self._get_output(command_as_string)
-        return output
