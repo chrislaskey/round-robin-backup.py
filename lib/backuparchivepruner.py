@@ -6,11 +6,12 @@ from utilities.sshutilities import SSHCommand
 
 class BackupArchivePruner(BackupAgent):
     
-    def cleanup_backups(self):
-        self._set_existing_backups()
+    def execute(self):
+        'Remove stale archives based on round-robin dates'
+        self._get_existing_backups()
         self._remove_stale_backups()
 
-    def _set_existing_backups(self):
+    def _get_existing_backups(self):
         existing_backups = self._get_list_of_existing_backups()
         self.existing_backups = existing_backups
 
@@ -63,6 +64,7 @@ class BackupArchivePruner(BackupAgent):
         '''
         Parse date from backup filename like
         automated-backup-2012-02-01.tar.bzip2
+        <prefix><date><ext>
         '''
         backup_prefix = self.options['backup_prefix']
         prefix_length = len(backup_prefix)
